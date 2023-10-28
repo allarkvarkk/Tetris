@@ -12,6 +12,8 @@ public class Piece {
 
     protected Color color;
 
+    private int amountFallen, newY;
+
     protected PieceType pieceType;
     private static final Color[] pieceColors = {
             Color.CYAN,   // I
@@ -25,13 +27,19 @@ public class Piece {
 
     public Piece(int[][] shape, int currentRotation, int x, int y) {
         this(shape, currentRotation, x, y, PieceType.BLANK, Color.BLACK);
+        amountFallen = 0;
+        newY = 0;
     }
     public Piece(int[][] shape) {
         this(shape, 0, 0, 0, PieceType.BLANK, Color.BLACK);
+        newY = 0;
+        amountFallen = 0;
     }
 
     public Piece(Piece piece) {
         this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getX(), piece.getY(), PieceType.BLANK, Color.BLACK);
+        newY = 0;
+        amountFallen = 0;
     }
 
     public Piece(int[][] shape, int currentRotation, int x, int y, PieceType pieceType, Color color) {
@@ -41,6 +49,8 @@ public class Piece {
         this.y = y;
         this.pieceType = pieceType;
         this.color = color;
+        amountFallen = 0;
+        newY = 0;
     }
 
     public int[][] getCurrentShape() {
@@ -133,6 +143,10 @@ public class Piece {
         x = Engine.BOARD_WIDTH / 2 - getWidth() / 2;
         // Reset the position of the piece to the top
     }
+    public int moveDownOverTime() {
+        amountFallen += Engine.SPACE_SIZE;
+        return amountFallen;
+    }
 
 
 
@@ -146,11 +160,17 @@ public class Piece {
         return x + getWidth() == Engine.BOARD_WIDTH;
     }
 
-    public boolean isTouchingBottomBoundary() {
-        return y + getHeight() == Engine.BOARD_HEIGHT;
-        // Check if the piece is touching the bottom boundary
+  //  public boolean isTouchingBottomBoundary(int y) {
+       // return y == ((Engine.SCREEN_HEIGHT / 2) - (Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) / 2);
+   // }
+
+    public int getNewY(){
+        return newY;
     }
 
+    public void setNewY(int newY){
+        this.newY = newY;
+    }
 
     public PieceType getPieceType() {
         return pieceType;

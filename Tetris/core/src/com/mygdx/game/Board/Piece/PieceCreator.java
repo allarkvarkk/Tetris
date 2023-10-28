@@ -1,4 +1,5 @@
 package com.mygdx.game.Board.Piece;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.mygdx.game.Board.Board;
@@ -13,6 +14,7 @@ public class PieceCreator {
     private Piece piece;
     private int centerHorizontally, bottomOfBoard;
     public int counter;
+
     public PieceCreator(Engine tetris, int centerHorizontally, int bottomOfBoard) {
         this.tetris = tetris;
         this.centerHorizontally = centerHorizontally;
@@ -23,7 +25,7 @@ public class PieceCreator {
 
 
     public static Piece createPiece(PieceType type) {
-        switch(type) {
+        switch (type) {
             case I:
                 return new IPiece();
             case J:
@@ -42,6 +44,7 @@ public class PieceCreator {
                 throw new IllegalArgumentException("Invalid piece type");
         }
     }
+
     public static Color getColorForPieceType(PieceType type) {
         switch (type) {
             case I:
@@ -62,46 +65,42 @@ public class PieceCreator {
                 return Color.BLACK; // Default color for unknown types
         }
     }
+
     public static int[][] getShape(PieceType type) {
         switch (type) {
             case I:
-                return new int[][] {
-                        {0, 0, 0, 0},
-                        {1, 1, 1, 1},
-                        {0, 0, 0, 0},
-                        {0, 0, 0, 0}
+                return new int[][]{
+                        {1, 1, 1, 1}
                 };
             case J:
-                return new int[][] {
-                        {0, 0, 0},
+                return new int[][]{
                         {1, 1, 1},
                         {0, 0, 1},
                 };
             case L:
-                return new int[][] {
-                        {0, 0, 0},
+                return new int[][]{
                         {1, 1, 1},
                         {1, 0, 0},
                 };
             case O:
-                return new int[][] {
+                return new int[][]{
                         {1, 1},
                         {1, 1}
                 };
             case S:
-                return new int[][] {
+                return new int[][]{
                         {0, 0, 0},
                         {0, 1, 1},
                         {1, 1, 0}
                 };
             case T:
-                return new int[][] {
+                return new int[][]{
                         {0, 0, 0},
                         {1, 1, 1},
                         {0, 1, 0}
                 };
             case Z:
-                return new int[][] {
+                return new int[][]{
                         {0, 0, 0},
                         {1, 1, 0},
                         {0, 1, 1}
@@ -122,23 +121,36 @@ public class PieceCreator {
     public ArrayList<Rectangle> createCurrentPieceShape() {
         pieceShape.clear();
         counter = 0;
-        int currentX = centerHorizontally - 20;
+        int currentX = getXStartingDisplacement(piece.getPieceType()); //centerHorizontally - 40;
         int currentY = bottomOfBoard + 380;
-        for(int i = 0; i < piece.getCurrentShape().length; i ++){
-            for(int u = 0; u < piece.getCurrentShape()[i].length; u ++){
-                if(piece.getCurrentShape()[i][u] == 1) {
+        for (int i = 0; i < piece.getCurrentShape().length; i++) {
+            for (int u = 0; u < piece.getCurrentShape()[i].length; u++) {
+                if (piece.getCurrentShape()[i][u] == 1) {
                     pieceShape.add(new Rectangle(currentX, currentY, Engine.SPACE_SIZE, Engine.SPACE_SIZE));
                 }
-                if(!pieceShape.isEmpty()) {
+                if (!pieceShape.isEmpty()) {
                     currentX += Engine.SPACE_SIZE;
                 }
             }
-            currentX = centerHorizontally - 20;
+            currentX = centerHorizontally - 40;
             currentY += Engine.SPACE_SIZE;
         }
         return pieceShape;
     }
 
+    public int getXStartingDisplacement(PieceType type) {
+        switch (type) {
+            case I:
+            case J:
+            case L:
+            case O:
+            case S:
+            case T:
+            case Z:
+            default:
+                return centerHorizontally - 40;
+        }
+    }
 
 
 }

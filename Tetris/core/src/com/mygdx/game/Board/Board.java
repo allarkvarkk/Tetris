@@ -9,6 +9,8 @@ import com.mygdx.game.Board.Piece.Piece;
 import com.mygdx.game.Board.Piece.PieceCreator;
 import com.mygdx.game.Board.Piece.PieceType;
 import com.mygdx.game.Engine;
+import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.utils.Timer.Task;
 
 import java.util.ArrayList;
 
@@ -19,6 +21,7 @@ public class Board implements Screen {
     private Rectangle[][] grid;
     private PieceCreator pieceCreator;
     private Piece piece;
+    private boolean isMovingPieceDown = false;
 
     public Board(Engine tetris) {
         this.tetris = tetris;
@@ -31,7 +34,15 @@ public class Board implements Screen {
     @Override
     public void show() {
         tetris.shapeRenderer = new ShapeRenderer(); // Initialize the shape renderer
+
+        Timer.schedule(new Task() {
+            @Override
+            public void run() {
+                isMovingPieceDown = true;
+            }
+        }, 1, 1); // Move down every 2 seconds
     }
+
 
     @Override
     public void render(float delta) {
@@ -51,15 +62,27 @@ public class Board implements Screen {
                 tetris.shapeRenderer.rect(grid[i][u].x, grid[i][u].y, grid[i][u].width, grid[i][u].height);
             }
         }
+        int pieceNewY = piece.getNewY();
+        if(isMovingPieceDown) {
+            pieceNewY = piece.moveDownOverTime();
+            piece.setNewY(pieceNewY);
+            isMovingPieceDown = false;
+        }
 
-        // Draw the game piece
+
         tetris.shapeRenderer.setColor(piece.getColor());
         for (int i = 0; i < pieceShape.size(); i++) {
-            tetris.shapeRenderer.rect(pieceShape.get(i).x,pieceShape.get(i).y,pieceShape.get(i).width,pieceShape.get(i).height);
-        }
+
+                tetris.shapeRenderer.rect(pieceShape.get(i).x, pieceShape.get(i).y - pieceNewY, pieceShape.get(i).width, pieceShape.get(i).height);
+
+            }
 
         tetris.shapeRenderer.end();
     }
+
+
+
+
 
     @Override
     public void resize(int width, int height) {
@@ -95,6 +118,7 @@ public class Board implements Screen {
         }
     }
 
+
     public int getCenterHorizontally() {
         return screenWidth / 2;
     }
@@ -109,5 +133,5 @@ public class Board implements Screen {
 
     public int getBottomOfBoard() {
         return getCenterVertically() - (Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) / 2;
-    }
+    } //(screenHeight / 2) - (Engine.BOARD_HEIGHT * ENGINE>SPACE_SIZE) / 2;
 }
