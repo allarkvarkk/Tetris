@@ -1,5 +1,6 @@
 package com.mygdx.game.Board.Piece;
 
+import com.badlogic.gdx.graphics.Color;
 import com.mygdx.game.Board.Board;
 
 public class Piece {
@@ -8,18 +9,37 @@ public class Piece {
     protected int x;
     protected int y;
 
+    protected Color color;
+
+    protected PieceType pieceType;
+    private static final Color[] pieceColors = {
+            Color.CYAN,   // I
+            Color.BLUE,   // J
+            Color.ORANGE, // L
+            Color.YELLOW, // O
+            Color.GREEN,  // S
+            Color.MAGENTA, // T
+            Color.RED    // Z
+    };
+
     public Piece(int[][] shape, int currentRotation, int x, int y) {
+        this(shape, currentRotation, x, y, PieceType.BLANK, Color.BLACK);
+    }
+    public Piece(int[][] shape) {
+        this(shape, 0, 0, 0, PieceType.BLANK, Color.BLACK);
+    }
+
+    public Piece(Piece piece) {
+        this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getX(), piece.getY(), PieceType.BLANK, Color.BLACK);
+    }
+
+    public Piece(int[][] shape, int currentRotation, int x, int y, PieceType pieceType, Color color) {
         this.shape = shape;
         this.currentRotation = currentRotation;
         this.x = x;
         this.y = y;
-    }
-    public Piece(int[][] shape) {
-        this(shape, 0, 0, 0);
-    }
-
-    public Piece(Piece piece) {
-        this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getX(), piece.getY());
+        this.pieceType = pieceType;
+        this.color = color;
     }
 
     public int[][] getCurrentShape() {
@@ -148,8 +168,18 @@ public class Piece {
         // Check if the piece is touching the bottom boundary
     }
 
-//    public static Piece getRandomPiece() {
-//        // Generate a random piece
-//    }
+    public static Piece getRandomPiece() {
+        PieceType randomType = PieceType.values()[(int) (Math.random() * PieceType.values().length)];
+        int[][] shape = PieceCreator.getShape(randomType);
+        return new Piece(shape, 0, 0, 0, randomType, PieceCreator.getColorForPieceType(randomType));
+    }
+
+    public PieceType getPieceType() {
+        return pieceType;
+    }
+
+    public Color getColor() {
+        return color;
+    }
 
 }
