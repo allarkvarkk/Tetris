@@ -2,6 +2,7 @@ package com.mygdx.game.Board.Piece;
 
 import com.badlogic.gdx.graphics.Color;
 import com.mygdx.game.Board.Board;
+import com.mygdx.game.Engine;
 
 public class Piece {
     protected int[][] shape;
@@ -118,7 +119,7 @@ public class Piece {
     }
 
     public boolean isAtBottom() {
-        return y + getHeight() == Board.BOARD_HEIGHT;
+        return y + getHeight() == Engine.BOARD_HEIGHT;
         // Check if the piece is at the bottom of the game board
     }
 
@@ -129,29 +130,11 @@ public class Piece {
 
     public void resetPosition() {
         moveToTop();
-        x = Board.BOARD_WIDTH / 2 - getWidth() / 2;
+        x = Engine.BOARD_WIDTH / 2 - getWidth() / 2;
         // Reset the position of the piece to the top
     }
 
-//    public boolean validatePosition(Board board) {
-//        // Check if the current position is valid on the game board
-//        int[][] currentShape = getCurrentShape();
-//        for (int i = 0; i < getHeight(); i++) {
-//            for (int j = 0; j < getWidth(); j++) {
-//                if (currentShape[i][j] != 0) {
-//                    int boardX = x + j;
-//                    int boardY = y + i;
-//                    if (boardX < 0 || boardX >= Board.BOARD_WIDTH || boardY >= Board.BOARD_HEIGHT) {
-//                        return false; // Invalid position due to boundaries
-//                    }
-//                    if (boardY >= 0 && board.isOccupied(boardX, boardY)) {
-//                        return false; // Invalid position due to collision with other pieces
-//                    }
-//                }
-//            }
-//        }
-//        return true; // Valid position
-//    }
+
 
     public boolean isTouchingLeftBoundary() {
         return x == 0;
@@ -160,11 +143,11 @@ public class Piece {
 
     public boolean isTouchingRightBoundary() {
         // Check if the piece is touching the right boundary
-        return x + getWidth() == Board.BOARD_WIDTH;
+        return x + getWidth() == Engine.BOARD_WIDTH;
     }
 
     public boolean isTouchingBottomBoundary() {
-        return y + getHeight() == Board.BOARD_HEIGHT;
+        return y + getHeight() == Engine.BOARD_HEIGHT;
         // Check if the piece is touching the bottom boundary
     }
 

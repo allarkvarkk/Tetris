@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 public class Engine extends Game {
 	public SpriteBatch batch;
 	public ShapeRenderer shapeRenderer;
+	final public static int BOARD_WIDTH = 10, BOARD_HEIGHT = 20, SPACE_SIZE = 20;
 
 	@Override
 	public void create () {
