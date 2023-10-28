@@ -168,11 +168,6 @@ public class Piece {
         // Check if the piece is touching the bottom boundary
     }
 
-    public static Piece getRandomPiece() {
-        PieceType randomType = PieceType.values()[(int) (Math.random() * PieceType.values().length)];
-        int[][] shape = PieceCreator.getShape(randomType);
-        return new Piece(shape, 0, 0, 0, randomType, PieceCreator.getColorForPieceType(randomType));
-    }
 
     public PieceType getPieceType() {
         return pieceType;

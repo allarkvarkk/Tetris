@@ -1,7 +1,13 @@
 package com.mygdx.game.Board.Piece;
 import com.badlogic.gdx.graphics.Color;
+import com.mygdx.game.Board.Board;
+import com.mygdx.game.Engine;
 
-public class PieceCreator {
+public class PieceCreator extends Board {
+    public PieceCreator(Engine tetris) {
+        super(tetris);
+    }
+
     public static Piece createPiece(PieceType type) {
         switch(type) {
             case I:
@@ -89,5 +95,12 @@ public class PieceCreator {
             default:
                 throw new IllegalArgumentException("Invalid TetrominoType");
         }
+    }
+
+
+    public static Piece createRandomPiece() {
+        PieceType randomType = PieceType.values()[(int) (Math.random() * PieceType.values().length)];
+        int[][] shape = PieceCreator.getShape(randomType);
+        return new Piece(shape, 0, 0, 0, randomType, PieceCreator.getColorForPieceType(randomType));
     }
 }

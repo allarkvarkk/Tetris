@@ -5,6 +5,9 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.mygdx.game.Board.Piece.Piece;
+import com.mygdx.game.Board.Piece.PieceCreator;
+import com.mygdx.game.Board.Piece.PieceType;
 import com.mygdx.game.Engine;
 
 public class Board implements Screen {
@@ -28,13 +31,30 @@ public class Board implements Screen {
 
     @Override
     public void render(float delta) {
+        Piece I = PieceCreator.createPiece(PieceType.T);
+        int x = getCenterHorizontally() - 20;
+        int y = getBottomOfBoard() + (380);
+
+
         tetris.shapeRenderer.setAutoShapeType(true);
         tetris.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         tetris.shapeRenderer.setColor(new Color(0, 255, 26, 0));
+
         for(int i = 0; i < grid.length; i ++){
             for(int u = 0; u < grid[i].length; u ++){
                 tetris.shapeRenderer.rect(grid[i][u].x,grid[i][u].y, grid[i][u].width, grid[i][u].height);
             }
+        }
+        tetris.shapeRenderer.setColor(I.getColor());
+        for(int i = 0; i < I.getCurrentShape().length; i++) {
+            for(int j = 0; j < I.getCurrentShape()[i].length; j++) {
+                if(I.getCurrentShape()[i][j] == 1) {
+                    tetris.shapeRenderer.rect(x,y, SPACE_SIZE, SPACE_SIZE);
+                }
+                x += SPACE_SIZE;
+            }
+            x = getCenterHorizontally()- 20;
+            y -= SPACE_SIZE;
         }
         tetris.shapeRenderer.end();
     }
