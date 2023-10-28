@@ -5,15 +5,19 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.mygdx.game.Board.Board;
 import com.mygdx.game.States.GameStates;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 public class Engine extends Game {
 	public SpriteBatch batch;
+	public ShapeRenderer shapeRenderer;
 
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		setScreen(new GameStates(this));
+		shapeRenderer = new ShapeRenderer();
+		setScreen(new Board(this));
 	}
 
 	@Override
