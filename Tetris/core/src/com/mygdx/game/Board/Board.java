@@ -1,6 +1,7 @@
 package com.mygdx.game.Board;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -16,11 +17,15 @@ import java.util.ArrayList;
 
 public class Board implements Screen {
     private int x, y;
-    final public static int SCREEN_HEIGHT = Gdx.graphics.getHeight(), SCREEN_WIDTH = Gdx.graphics.getWidth();
-
+    public static int SCREEN_HEIGHT = Gdx.graphics.getHeight(), SCREEN_WIDTH = Gdx.graphics.getWidth();
+    final public static int defaultY = (Board.SCREEN_HEIGHT / 2 - (Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) / 2) + ((Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) + Engine.SPACE_SIZE);
+    final public static int defaultX = (Board.SCREEN_WIDTH / 2) - (2 * Engine.SPACE_SIZE);
     private Engine tetris;
     private Rectangle[][] grid;
     private PieceCreator pieceCreator;
+
+    private ArrayList<Rectangle> previousPieces;
+//    private Piece piece;
     private Piece piece;
 
     private ArrayList<Rectangle> pieceShape;
@@ -31,8 +36,8 @@ public class Board implements Screen {
         grid = new Rectangle[Engine.BOARD_WIDTH][Engine.BOARD_HEIGHT];
         pieceCreator = new PieceCreator(tetris, getCenterHorizontally(), getBottomOfBoard());
         createBoard();
-        piece = pieceCreator.createRandomPiece();
-        pieceShape = pieceCreator.createCurrentPieceShape();
+        previousPieces = new ArrayList<Rectangle>();
+
     }
 
     @Override
@@ -43,9 +48,22 @@ public class Board implements Screen {
             public void run() {
                 isMovingPieceDown = true;
             }
-        }, 1, 1); // Move down every 2 second
+        }, .1f, .1f); // Move down every 2 second
     }
 
+    public void addPreviousPieces(ArrayList<Rectangle> completed) {
+        previousPieces.addAll(completed);
+    }
+
+    public ArrayList<Rectangle> getPreviousPieces() {
+        return previousPieces;
+    }
+
+    public void createMovementPiece() {
+        pieceShape.clear();
+        piece = pieceCreator.createRandomPiece();
+        pieceShape = pieceCreator.createCurrentPieceShape();
+    }
 
     @Override
     public void render(float delta) {
@@ -53,6 +71,11 @@ public class Board implements Screen {
         // Clear the screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(Gdx.gl.GL_COLOR_BUFFER_BIT);
+
+        if(piece == null || pieceShape.isEmpty()) {
+            piece = pieceCreator.createRandomPiece();
+            pieceShape = pieceCreator.createCurrentPieceShape();
+        }
 
         tetris.shapeRenderer.setAutoShapeType(true);
         tetris.shapeRenderer.begin(ShapeRenderer.ShapeType.Line); // Use Filled for rendering
@@ -71,10 +94,15 @@ public class Board implements Screen {
 
 
         tetris.shapeRenderer.setColor(piece.getColor());
-        for (int i = 0; i < pieceShape.size(); i++) {
-            tetris.shapeRenderer.rect(pieceShape.get(i).x, pieceShape.get(i).y, pieceShape.get(i).width, pieceShape.get(i).height);
+        for (Rectangle rectangle : pieceShape) {
+            tetris.shapeRenderer.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
             // this is where piece is drawn. Move down here
         }
+
+        for (Rectangle previousPiece : previousPieces) {
+            tetris.shapeRenderer.rect(previousPiece.x, previousPiece.y, previousPiece.width, previousPiece.height);
+        }
+
         tetris.shapeRenderer.end();
     }
 
@@ -134,7 +162,6 @@ public class Board implements Screen {
     private int getCenterVertically() {
         return SCREEN_HEIGHT / 2;
     }
-
     private int getLeftOfBoard() {
         return getCenterHorizontally() - (Engine.BOARD_WIDTH * Engine.SPACE_SIZE) / 2;
     }

@@ -11,8 +11,6 @@ import java.util.ArrayList;
 public class Piece {
     protected int[][] shape;
     protected int currentRotation;
-    protected int x;
-    protected int y;
 
     private ArrayList<Piece> pieces;
     protected Color color;
@@ -30,28 +28,25 @@ public class Piece {
             Color.RED    // Z
     };
 
-    public Piece(int[][] shape, int currentRotation, int x, int y) {
-        this(shape, currentRotation, x, y, PieceType.BLANK, Color.BLACK);
+    public Piece(int[][] shape, int currentRotation) {
+        this(shape, currentRotation, PieceType.Z, Color.BLACK);
         amountFallen = 0;
     }
     public Piece(int[][] shape) {
-        this(shape, 0, 0, 0, PieceType.BLANK, Color.BLACK);
+        this(shape, 0, PieceType.Z, Color.BLACK);
         amountFallen = 0;
     }
 
     public Piece(Piece piece) {
-        this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getX(), piece.getY(), piece.getPieceType(), piece.getColor());
+        this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getPieceType(), piece.getColor());
         amountFallen = 0;
     }
 
-    public Piece(int[][] shape, int currentRotation, int x, int y, PieceType pieceType, Color color) {
+    public Piece(int[][] shape, int currentRotation, PieceType pieceType, Color color) {
         this.shape = shape;
         this.currentRotation = currentRotation;
-        this.x = x;
-        this.y = y;
         this.pieceType = pieceType;
         this.color = color;
-
 
         amountFallen = 0;
     }
@@ -71,22 +66,23 @@ public class Piece {
         return shape.length;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
     public void move(int deltaX, int deltaY) {
         ArrayList<Rectangle> pieceShape = BoardManager.getBoard().getMovingPiece();
         deltaX *= Engine.SPACE_SIZE;
         deltaY *= Engine.SPACE_SIZE;
-        for(int i = 0; i < pieceShape.size(); i++) {
-            pieceShape.get(i).x += deltaX;
-            pieceShape.get(i).y += deltaY;
+        if (!isTouchingBottomBoundary(pieceShape) && (BoardManager.getBoard().getPreviousPieces().isEmpty()
+                || !shouldPieceStop(BoardManager.getBoard().getPreviousPieces(), pieceShape))){
+            for (int i = 0; i < pieceShape.size(); i++) {
+                pieceShape.get(i).x += deltaX;
+                pieceShape.get(i).y += deltaY;
+
+            }
+
+        } else {
+            BoardManager.getBoard().addPreviousPieces(pieceShape);
+            BoardManager.getBoard().createMovementPiece();
         }
+
     }
 
     public void rotateClockwise() {
@@ -116,10 +112,14 @@ public class Piece {
     }
 
     public void reset() {
+        ArrayList<Rectangle> pieceShape = BoardManager.getBoard().getMovingPiece();
+
         // Reset the piece to its initial state
         this.currentRotation = 0;
-        this.x = 0;
-        this.y = 0;
+        for(int i = 0; i < pieceShape.size(); i++) {
+            pieceShape.get(i).x = Board.defaultX;
+            pieceShape.get(i).y = Board.defaultY;
+        }
         // maybe reset other attributes of piece
     }
 
@@ -151,13 +151,20 @@ public class Piece {
 //    }
 
     public void moveToTop() {
-        y = 0;
+        ArrayList<Rectangle> pieceShape = BoardManager.getBoard().getMovingPiece();
+        for(int i = 0; i < pieceShape.size(); i++) {
+            pieceShape.get(i).y = Board.defaultY;
+        }
         // Position the piece at the top of the game board
     }
 
     public void resetPosition() {
         moveToTop();
-        x = Engine.BOARD_WIDTH / 2 - getWidth() / 2;
+//        x = Engine.BOARD_WIDTH / 2 - getWidth() / 2;
+        ArrayList<Rectangle> pieceShape = BoardManager.getBoard().getMovingPiece();
+        for(int i = 0; i < pieceShape.size(); i++) {
+            pieceShape.get(i).x = Board.defaultX;
+        }
         // Reset the position of the piece to the top
     }
     public int moveDownOverTime() {
@@ -165,26 +172,38 @@ public class Piece {
         return amountFallen;
     }
 
-
-
-    public boolean isTouchingLeftBoundary() {
-        return x == 0;
-        // Check if the piece is touching the left boundary
+    // add boolean methods for touching each boundary
+    public boolean isTouchingBottomBoundary(ArrayList<Rectangle> rect) {
+        return lowestYPosition(rect) == BoardManager.getBoard().getBottomOfBoard();
     }
 
-    public boolean isTouchingRightBoundary() {
-        // Check if the piece is touching the right boundary
-        return x + getWidth() == Engine.BOARD_WIDTH;
+    public boolean shouldPieceStop(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
+        for(int i = 0; i < previous.size(); i ++){
+            for(int u =0; u < current.size(); u ++){
+                if(current.get(u).y == previous.get(i).y + Engine.SPACE_SIZE && current.get(u).x >= previous.get(i).x && current.get(u).x <= previous.get(i).x + Engine.SPACE_SIZE){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    public boolean isTouchingBottomBoundary() {
-        return y + getHeight() == Engine.BOARD_HEIGHT;
+    public int lowestYPosition(ArrayList<Rectangle> rect) {
+        int temp = Integer.MAX_VALUE;
+        for (Rectangle i : rect) {
+            if ((int) i.y < temp) {
+                temp = (int) i.y;
+            }
+        }
+        return temp;
     }
-
     public PieceType getPieceType() {
         return pieceType;
     }
 
+    public Piece getCurrentPiece() {
+        return this;
+    }
     public Color getColor() {
         return color;
     }

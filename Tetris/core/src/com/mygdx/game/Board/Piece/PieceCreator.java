@@ -21,11 +21,10 @@ public class PieceCreator {
         this.bottomOfBoard = bottomOfBoard;
         this.counter = 0; // Initialize the counter to 0
         pieceShape = new ArrayList<Rectangle>();
-        piece = createRandomPiece();
     }
 
 
-    public static Piece createPiece(PieceType type) {
+    public Piece createPiece(PieceType type) {
         switch (type) {
             case I:
                 return new IPiece();
@@ -111,14 +110,15 @@ public class PieceCreator {
 
     public Piece createRandomPiece() {
         PieceType randomType = PieceType.values()[(int) (Math.random() * PieceType.values().length)];
-        return createPiece(randomType);
+        piece = createPiece(randomType); // Update the piece field
+        return piece;
     }
 
     public ArrayList<Rectangle> createCurrentPieceShape() {
         pieceShape.clear();
         counter = 0;
-        int currentX = centerHorizontally - 40; // centerHorizontally - 40;
-        int currentY = bottomOfBoard + 420;
+        int currentX = Board.defaultX; // centerHorizontally - 40;
+        int currentY = Board.defaultY;
         for (int i = 0; i < piece.getCurrentShape().length; i++) {
             for (int u = 0; u < piece.getCurrentShape()[i].length; u++) {
                 if (piece.getCurrentShape()[i][u] == 1) {
