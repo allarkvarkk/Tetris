@@ -1,8 +1,12 @@
 package com.mygdx.game.Board.Piece;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Rectangle;
 import com.mygdx.game.Board.Board;
+import com.mygdx.game.Board.BoardManager;
 import com.mygdx.game.Engine;
+
+import java.util.ArrayList;
 
 public class Piece {
     protected int[][] shape;
@@ -10,6 +14,7 @@ public class Piece {
     protected int x;
     protected int y;
 
+    private ArrayList<Piece> pieces;
     protected Color color;
 
     private int amountFallen, newY;
@@ -28,17 +33,14 @@ public class Piece {
     public Piece(int[][] shape, int currentRotation, int x, int y) {
         this(shape, currentRotation, x, y, PieceType.BLANK, Color.BLACK);
         amountFallen = 0;
-        newY = 0;
     }
     public Piece(int[][] shape) {
         this(shape, 0, 0, 0, PieceType.BLANK, Color.BLACK);
-        newY = 0;
         amountFallen = 0;
     }
 
     public Piece(Piece piece) {
-        this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getX(), piece.getY(), PieceType.BLANK, Color.BLACK);
-        newY = 0;
+        this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getX(), piece.getY(), piece.getPieceType(), piece.getColor());
         amountFallen = 0;
     }
 
@@ -49,8 +51,9 @@ public class Piece {
         this.y = y;
         this.pieceType = pieceType;
         this.color = color;
+
+
         amountFallen = 0;
-        newY = 0;
     }
 
     public int[][] getCurrentShape() {
@@ -77,8 +80,13 @@ public class Piece {
     }
 
     public void move(int deltaX, int deltaY) {
-        x += deltaX;
-        y += deltaY;
+        ArrayList<Rectangle> pieceShape = BoardManager.getBoard().getMovingPiece();
+        deltaX *= Engine.SPACE_SIZE;
+        deltaY *= Engine.SPACE_SIZE;
+        for(int i = 0; i < pieceShape.size(); i++) {
+            pieceShape.get(i).x += deltaX;
+            pieceShape.get(i).y += deltaY;
+        }
     }
 
     public void rotateClockwise() {
@@ -128,10 +136,19 @@ public class Piece {
         }
     }
 
-    public boolean isAtBottom() {
-        return y + getHeight() == Engine.BOARD_HEIGHT;
-        // Check if the piece is at the bottom of the game board
+    public static boolean isValidPieceType(PieceType type) {
+        for (PieceType validType : PieceType.values()) {
+            if (validType == type) {
+                return true;
+            }
+        }
+        return false;
     }
+
+//    public boolean isAtBottom(Board board) {
+//        return board.getLowestYPos() == Engine.BOARD_HEIGHT;
+//        // Check if the piece is at the bottom of the game board
+//    }
 
     public void moveToTop() {
         y = 0;
@@ -160,16 +177,8 @@ public class Piece {
         return x + getWidth() == Engine.BOARD_WIDTH;
     }
 
-  //  public boolean isTouchingBottomBoundary(int y) {
-       // return y == ((Engine.SCREEN_HEIGHT / 2) - (Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) / 2);
-   // }
-
-    public int getNewY(){
-        return newY;
-    }
-
-    public void setNewY(int newY){
-        this.newY = newY;
+    public boolean isTouchingBottomBoundary() {
+        return y + getHeight() == Engine.BOARD_HEIGHT;
     }
 
     public PieceType getPieceType() {

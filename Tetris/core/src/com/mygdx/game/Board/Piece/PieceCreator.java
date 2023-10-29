@@ -21,6 +21,7 @@ public class PieceCreator {
         this.bottomOfBoard = bottomOfBoard;
         this.counter = 0; // Initialize the counter to 0
         pieceShape = new ArrayList<Rectangle>();
+        piece = createRandomPiece();
     }
 
 
@@ -84,73 +85,50 @@ public class PieceCreator {
                 };
             case O:
                 return new int[][]{
-                        {1, 1},
-                        {1, 1}
+                        {0, 1, 1},
+                        {0, 1, 1}
                 };
             case S:
                 return new int[][]{
-                        {0, 0, 0},
                         {0, 1, 1},
                         {1, 1, 0}
                 };
             case T:
                 return new int[][]{
-                        {0, 0, 0},
                         {1, 1, 1},
                         {0, 1, 0}
                 };
             case Z:
                 return new int[][]{
-                        {0, 0, 0},
                         {1, 1, 0},
                         {0, 1, 1}
                 };
             default:
-                throw new IllegalArgumentException("Invalid TetrominoType");
+                throw new IllegalArgumentException("Invalid PieceType");
         }
     }
 
 
     public Piece createRandomPiece() {
         PieceType randomType = PieceType.values()[(int) (Math.random() * PieceType.values().length)];
-        int[][] shape = PieceCreator.getShape(randomType);
-        piece = new Piece(shape);
-        return new Piece(shape, 0, 0, 0, randomType, PieceCreator.getColorForPieceType(randomType));
+        return createPiece(randomType);
     }
 
     public ArrayList<Rectangle> createCurrentPieceShape() {
         pieceShape.clear();
         counter = 0;
-        int currentX = getXStartingDisplacement(piece.getPieceType()); //centerHorizontally - 40;
-        int currentY = bottomOfBoard + 380;
+        int currentX = centerHorizontally - 40; // centerHorizontally - 40;
+        int currentY = bottomOfBoard + 420;
         for (int i = 0; i < piece.getCurrentShape().length; i++) {
             for (int u = 0; u < piece.getCurrentShape()[i].length; u++) {
                 if (piece.getCurrentShape()[i][u] == 1) {
                     pieceShape.add(new Rectangle(currentX, currentY, Engine.SPACE_SIZE, Engine.SPACE_SIZE));
                 }
-                if (!pieceShape.isEmpty()) {
-                    currentX += Engine.SPACE_SIZE;
-                }
+                currentX += Engine.SPACE_SIZE;
             }
-            currentX = centerHorizontally - 40;
-            currentY += Engine.SPACE_SIZE;
+            currentY -= Engine.SPACE_SIZE; // Move up to the next row
+            currentX =  centerHorizontally - 40; // Reset X to the start of the row
         }
         return pieceShape;
     }
-
-    public int getXStartingDisplacement(PieceType type) {
-        switch (type) {
-            case I:
-            case J:
-            case L:
-            case O:
-            case S:
-            case T:
-            case Z:
-            default:
-                return centerHorizontally - 40;
-        }
-    }
-
-
 }

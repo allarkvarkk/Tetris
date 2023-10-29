@@ -15,12 +15,15 @@ import com.badlogic.gdx.utils.Timer.Task;
 import java.util.ArrayList;
 
 public class Board implements Screen {
-    private int x, y, screenHeight = Gdx.graphics.getHeight(),
-            screenWidth = Gdx.graphics.getWidth();
+    private int x, y;
+    final public static int SCREEN_HEIGHT = Gdx.graphics.getHeight(), SCREEN_WIDTH = Gdx.graphics.getWidth();
+
     private Engine tetris;
     private Rectangle[][] grid;
     private PieceCreator pieceCreator;
     private Piece piece;
+
+    private ArrayList<Rectangle> pieceShape;
     private boolean isMovingPieceDown = false;
 
     public Board(Engine tetris) {
@@ -29,24 +32,23 @@ public class Board implements Screen {
         pieceCreator = new PieceCreator(tetris, getCenterHorizontally(), getBottomOfBoard());
         createBoard();
         piece = pieceCreator.createRandomPiece();
+        pieceShape = pieceCreator.createCurrentPieceShape();
     }
 
     @Override
     public void show() {
         tetris.shapeRenderer = new ShapeRenderer(); // Initialize the shape renderer
-
         Timer.schedule(new Task() {
             @Override
             public void run() {
                 isMovingPieceDown = true;
             }
-        }, 1, 1); // Move down every 2 seconds
+        }, 1, 1); // Move down every 2 second
     }
 
 
     @Override
     public void render(float delta) {
-        ArrayList<Rectangle> pieceShape = pieceCreator.createCurrentPieceShape();
 
         // Clear the screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -62,27 +64,33 @@ public class Board implements Screen {
                 tetris.shapeRenderer.rect(grid[i][u].x, grid[i][u].y, grid[i][u].width, grid[i][u].height);
             }
         }
-        int pieceNewY = piece.getNewY();
-        if(isMovingPieceDown) {
-            pieceNewY = piece.moveDownOverTime();
-            piece.setNewY(pieceNewY);
+        if (isMovingPieceDown) {
+            piece.move(0,-1);
             isMovingPieceDown = false;
         }
 
 
         tetris.shapeRenderer.setColor(piece.getColor());
         for (int i = 0; i < pieceShape.size(); i++) {
-
-                tetris.shapeRenderer.rect(pieceShape.get(i).x, pieceShape.get(i).y - pieceNewY, pieceShape.get(i).width, pieceShape.get(i).height);
-
-            }
-
+            tetris.shapeRenderer.rect(pieceShape.get(i).x, pieceShape.get(i).y, pieceShape.get(i).width, pieceShape.get(i).height);
+            // this is where piece is drawn. Move down here
+        }
         tetris.shapeRenderer.end();
     }
 
+//    public static int getLowestYPos() {
+//        return lowestYPos;
+//    }
 
-
-
+    public int getLowestYValue(ArrayList<Rectangle> rect) {
+        int temp = Integer.MAX_VALUE;
+        for (Rectangle i : rect) {
+            if ((int) i.getY() < temp) {
+                temp = (int) i.y;
+            }
+        }
+        return temp;
+    }
 
     @Override
     public void resize(int width, int height) {
@@ -120,11 +128,11 @@ public class Board implements Screen {
 
 
     public int getCenterHorizontally() {
-        return screenWidth / 2;
+        return SCREEN_WIDTH / 2;
     }
 
     private int getCenterVertically() {
-        return screenHeight / 2;
+        return SCREEN_HEIGHT / 2;
     }
 
     private int getLeftOfBoard() {
@@ -134,4 +142,8 @@ public class Board implements Screen {
     public int getBottomOfBoard() {
         return getCenterVertically() - (Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) / 2;
     } //(screenHeight / 2) - (Engine.BOARD_HEIGHT * ENGINE>SPACE_SIZE) / 2;
+
+    public ArrayList<Rectangle> getMovingPiece(){
+        return pieceShape;
+    }
 }

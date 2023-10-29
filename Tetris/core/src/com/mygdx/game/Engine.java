@@ -7,12 +7,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Board.Board;
+import com.mygdx.game.Board.BoardManager;
 import com.mygdx.game.States.GameStates;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 public class Engine extends Game {
 	public SpriteBatch batch;
 	public ShapeRenderer shapeRenderer;
+	public Board board;
 	final public static int BOARD_WIDTH = 10, BOARD_HEIGHT = 20, SPACE_SIZE = 20;
 	//final public static int SCREEN_HEIGHT = Gdx.graphics.getHeight(), SCREEN_WIDTH = Gdx.graphics.getWidth();
 
@@ -20,7 +22,9 @@ public class Engine extends Game {
 	public void create () {
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
-		setScreen(new Board(this));
+		board = new Board(this);
+		BoardManager.setBoard(board);
+		setScreen(board);
 	}
 
 	@Override
