@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.mygdx.game.Board.Piece.Piece;
 import com.mygdx.game.Board.Piece.PieceCreator;
+import com.mygdx.game.Board.Piece.PieceManager;
 import com.mygdx.game.Board.Piece.PieceType;
 import com.mygdx.game.Engine;
 import com.badlogic.gdx.utils.Timer;
@@ -39,6 +40,10 @@ public class Board implements Screen {
         previousPieces = new ArrayList<Rectangle>();
 
     }
+    public void setCurrentPiece(Piece piece) {
+        this.piece = piece;
+        pieceShape = pieceCreator.createCurrentPieceShape();
+    }
 
     @Override
     public void show() {
@@ -63,6 +68,7 @@ public class Board implements Screen {
         pieceShape.clear();
         piece = pieceCreator.createRandomPiece();
         pieceShape = pieceCreator.createCurrentPieceShape();
+        PieceManager.setPiece(piece);
     }
 
     @Override
@@ -75,6 +81,7 @@ public class Board implements Screen {
         if(piece == null || pieceShape.isEmpty()) {
             piece = pieceCreator.createRandomPiece();
             pieceShape = pieceCreator.createCurrentPieceShape();
+            PieceManager.setPiece(piece);
         }
 
         tetris.shapeRenderer.setAutoShapeType(true);
