@@ -4,21 +4,21 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.mygdx.game.Board.Board;
 import com.mygdx.game.Engine;
-import org.w3c.dom.css.Rect;
 
 import java.util.ArrayList;
 
 public class PieceCreator {
     private Engine tetris;
     private ArrayList<Rectangle> pieceShape;
-    private ArrayList<Color> colors;
     private Piece piece;
     private int centerHorizontally, bottomOfBoard;
+    public int counter;
 
     public PieceCreator(Engine tetris, int centerHorizontally, int bottomOfBoard) {
         this.tetris = tetris;
         this.centerHorizontally = centerHorizontally;
         this.bottomOfBoard = bottomOfBoard;
+        this.counter = 0; // Initialize the counter to 0
         pieceShape = new ArrayList<Rectangle>();
     }
 
@@ -69,78 +69,46 @@ public class PieceCreator {
         switch (type) {
             case I:
                 return new int[][]{
-                        {1, 1, 1, 1}
+                        {0, 1, 0, 0},
+                        {0, 1, 0, 0},
+                        {0, 1, 0, 0},
+                        {0, 1, 0, 0}
                 };
             case J:
                 return new int[][]{
                         {1, 1, 1},
                         {0, 0, 1},
+                        {0, 0, 0}
                 };
             case L:
                 return new int[][]{
                         {1, 1, 1},
                         {1, 0, 0},
+                        {0, 0, 0}
                 };
             case O:
                 return new int[][]{
                         {0, 1, 1},
-                        {0, 1, 1}
+                        {0, 1, 1},
+                        {0, 0, 0}
                 };
             case S:
                 return new int[][]{
                         {0, 1, 1},
-                        {1, 1, 0}
+                        {1, 1, 0},
+                        {0, 0, 0}
                 };
             case T:
                 return new int[][]{
                         {1, 1, 1},
-                        {0, 1, 0}
+                        {0, 1, 0},
+                        {0, 0, 0}
                 };
             case Z:
                 return new int[][]{
                         {1, 1, 0},
-                        {0, 1, 1}
-                };
-            default:
-                throw new IllegalArgumentException("Invalid PieceType");
-        }
-    }
-
-    public int[][] getShapeNS(PieceType type) {
-        switch (type) {
-            case I:
-                return new int[][]{
-                        {1, 1, 1, 1}
-                };
-            case J:
-                return new int[][]{
-                        {1, 1, 1},
-                        {0, 0, 1},
-                };
-            case L:
-                return new int[][]{
-                        {1, 1, 1},
-                        {1, 0, 0},
-                };
-            case O:
-                return new int[][]{
                         {0, 1, 1},
-                        {0, 1, 1}
-                };
-            case S:
-                return new int[][]{
-                        {0, 1, 1},
-                        {1, 1, 0}
-                };
-            case T:
-                return new int[][]{
-                        {1, 1, 1},
-                        {0, 1, 0}
-                };
-            case Z:
-                return new int[][]{
-                        {1, 1, 0},
-                        {0, 1, 1}
+                        {0, 0, 0}
                 };
             default:
                 throw new IllegalArgumentException("Invalid PieceType");
@@ -156,6 +124,7 @@ public class PieceCreator {
 
     public ArrayList<Rectangle> createCurrentPieceShape() {
         pieceShape.clear();
+        counter = 0;
         int currentX = Board.defaultX; // centerHorizontally - 40;
         int currentY = Board.defaultY;
         for (int i = 0; i < piece.getCurrentShape().length; i++) {
@@ -170,4 +139,13 @@ public class PieceCreator {
         }
         return pieceShape;
     }
+
+    public void clearPieceShape() {
+        pieceShape.clear();
+    }
+
+    public ArrayList<Rectangle> getPieceShape() {
+        return pieceShape;
+    }
+
 }

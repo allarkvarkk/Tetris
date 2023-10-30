@@ -6,15 +6,12 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
-import com.mygdx.game.Board.Piece.Piece;
-import com.mygdx.game.Board.Piece.PieceCreator;
-import com.mygdx.game.Board.Piece.PieceManager;
-import com.mygdx.game.Board.Piece.PieceType;
-import com.mygdx.game.Engine;
+import com.mygdx.game.Board.Piece.*;
+import com.mygdx.game.*;
+import com.mygdx.game.Player.*;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
-import org.w3c.dom.css.Rect;
-
+import com.mygdx.game.Player.PlayerInputHandler;
 import java.util.ArrayList;
 
 public class Board implements Screen {
@@ -25,15 +22,16 @@ public class Board implements Screen {
     private Engine tetris;
     private Rectangle[][] grid;
     private PieceCreator pieceCreator;
-    private boolean recreate = false;
-
+    PlayerInputHandler playerInput;
     private ArrayList<Rectangle> previousPieces;
-    private int[][] rotate;
     //    private Piece piece;
     private Piece piece;
-
+    private ScoreManager scoreManager;
     private ArrayList<Rectangle> pieceShape;
+    private ArrayList<Color> currentColor;
+    private ArrayList<Color> previousColors;
     private ArrayList<Color> colors;
+    private boolean pieceHasLanded = false;
     private boolean isMovingPieceDown = false;
 
     public Board(Engine tetris) {
@@ -43,6 +41,10 @@ public class Board implements Screen {
         createBoard();
         previousPieces = new ArrayList<Rectangle>();
         colors = new ArrayList<Color>(); // Initialize the colors list
+        playerInput = new PlayerInputHandler();
+        scoreManager = new ScoreManager();
+        currentColor = new ArrayList<Color>();
+        previousColors = new ArrayList<Color>();
     }
 
     public void setCurrentPiece(Piece piece) {
@@ -69,80 +71,53 @@ public class Board implements Screen {
         return previousPieces;
     }
 
+
     public void createMovementPiece() {
         if (piece == null || pieceShape.isEmpty()) {
             piece = pieceCreator.createRandomPiece();
             pieceShape = pieceCreator.createCurrentPieceShape();
-            rotate = pieceCreator.getShapeNS(piece.getPieceType());
             PieceManager.setPiece(piece);
         } else {
             pieceShape.clear();
+            currentColor.clear();
             piece = pieceCreator.createRandomPiece();
             pieceShape = pieceCreator.createCurrentPieceShape();
-            rotate = pieceCreator.getShapeNS(piece.getPieceType());
             PieceManager.setPiece(piece);
         }
         for (Rectangle rectangle : pieceShape) {
-            colors.add(piece.getColor());
+            //colors.add(piece.getColor());
+            currentColor.add(piece.getColor());
         }
     }
-
-    public void reCreate() {
-        // Clear the existing rectangles
-        int rowCount = piece.rotateArrayHopefully.length;
-        int colCount = piece.rotateArrayHopefully[0].length;
-
-        int startX = (int)pieceShape.get(0).x;
-        int startY = (int)pieceShape.get(0).y;
-
-        for (int row = 0; row < rowCount; row++) {
-            for (int col = 0; col < colCount; col++) {
-                if (piece.rotateArrayHopefully[row][col] == 1) {
-                    int newX = startX + col * Engine.SPACE_SIZE;
-                    int newY = startY - row * Engine.SPACE_SIZE;
-                    pieceShape.add(new Rectangle(newX, newY, Engine.SPACE_SIZE, Engine.SPACE_SIZE));
-                }
-            }
-        }
-        pieceShape.clear();
-    }
-
-
 
 
     @Override
     public void render(float delta) {
-
         // Clear the screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(Gdx.gl.GL_COLOR_BUFFER_BIT);
 
-
         if (piece == null || pieceShape.isEmpty()) {
             createMovementPiece();
         }
-//        for(int i = 0; i < rotate.length; i ++){
-//            for(int u= 0; u < rotate[i].length; u ++){
-//                System.out.print(rotate[i][u] + " ");
-//            }
-//            System.out.println();
-//        }
-//        System.out.println("\n\n\n");
 
         tetris.shapeRenderer.setAutoShapeType(true);
         tetris.shapeRenderer.begin(ShapeRenderer.ShapeType.Line); // Use Filled for rendering
         tetris.shapeRenderer.setColor(Color.GREEN);
 
         // Draw the grid
-        for (int i = 0; i < grid.length; i++) {
-            for (int u = 0; u < grid[i].length; u++) {
-                tetris.shapeRenderer.rect(grid[i][u].x, grid[i][u].y, grid[i][u].width, grid[i][u].height);
+        for (int i = 0; i < Engine.BOARD_WIDTH; i++) {
+            for (int u = 0; u < Engine.BOARD_HEIGHT; u++) {
+                if(grid[i][u] != null) {
+                    tetris.shapeRenderer.rect(grid[i][u].x, grid[i][u].y, grid[i][u].width, grid[i][u].height);
+                }
             }
         }
         if (isMovingPieceDown) {
             piece.move(0, -1);
             isMovingPieceDown = false;
         }
+        scoreManager.removeRows();
 
         tetris.shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
         tetris.shapeRenderer.setColor(piece.getColor());
@@ -150,15 +125,65 @@ public class Board implements Screen {
             tetris.shapeRenderer.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
         }
 
-        for (int i = 0; i < previousPieces.size(); i++) {
-            tetris.shapeRenderer.setColor(colors.get(i));
-            tetris.shapeRenderer.rect(previousPieces.get(i).x, previousPieces.get(i).y, previousPieces.get(i).width, previousPieces.get(i).height);
+        if(!previousColors.isEmpty()) {
+            for (int i = 0; i < previousPieces.size(); i++) {
+                tetris.shapeRenderer.setColor(previousColors.get(i));
+                tetris.shapeRenderer.rect(previousPieces.get(i).x, previousPieces.get(i).y, previousPieces.get(i).width, previousPieces.get(i).height);
+            }
         }
 
-
         tetris.shapeRenderer.end();
+
     }
 
+
+    public void checkAndClearFullRows() {
+        ArrayList<Rectangle> previous = BoardManager.getBoard().getPreviousPieces();
+
+        int totalRowsCleared = 0; // Initialize a variable to keep track of the number of rows cleared
+
+        for (int row = 0; row < Engine.BOARD_HEIGHT; row++) {
+            boolean isFull = true;
+
+            for (int col = 0; col < Engine.BOARD_WIDTH; col++) {
+                if (grid[col][row] == null) {
+                    isFull = false;
+                    break;
+                }
+            }
+
+            if (isFull) {
+                // Clear the full row
+                clearRow(row);
+
+                // Shift down rows above the cleared row
+                shiftRowsDown(row);
+
+                totalRowsCleared++; // Increment the count of cleared rows
+
+                // You can also handle level increment logic here if needed.
+            }
+        }
+
+        // Calculate points based on the total rows cleared using ScoreManager
+        if (totalRowsCleared > 0) {
+            scoreManager.updateScore(totalRowsCleared);
+        }
+    }
+
+    private void clearRow(int row) {
+        for (int col = 0; col < Engine.BOARD_WIDTH; col++) {
+            grid[col][row] = null;
+        }
+    }
+
+    private void shiftRowsDown(int clearedRow) {
+        for (int row = clearedRow; row < Engine.BOARD_HEIGHT - 1; row++) {
+            for (int col = 0; col < Engine.BOARD_WIDTH; col++) {
+                grid[col][row] = grid[col][row + 1];
+            }
+        }
+    }
 
     public int getLowestYValue(ArrayList<Rectangle> rect) {
         int temp = Integer.MAX_VALUE;
@@ -169,7 +194,9 @@ public class Board implements Screen {
         }
         return temp;
     }
-
+    public int getTopOfBoard(){
+        return getCenterVertically() + (Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) / 2;
+    }
     @Override
     public void resize(int width, int height) {
         // Update your camera and viewport here if needed
@@ -204,7 +231,13 @@ public class Board implements Screen {
         }
     }
 
+    public void addPreviousColors(ArrayList<Color> colorsComplete){
+        previousColors.addAll(colorsComplete);
+    }
 
+    public ArrayList<Color> getPreviousColors(){
+        return previousColors;
+    }
     public int getCenterHorizontally() {
         return SCREEN_WIDTH / 2;
     }
@@ -225,15 +258,7 @@ public class Board implements Screen {
         return pieceShape;
     }
 
-    public void setMovingPiece(ArrayList<Rectangle> pieceShape){
-        this.pieceShape = pieceShape;
-        reCreate();
-    }
-
-    public int[][] arrRotate(){
-        return rotate;
-    }
-    public void setRotation(int[][] arr){
-        piece.setCurrentShape(arr);
+    public ArrayList<Color> getCurrentColor(){
+        return currentColor;
     }
 }

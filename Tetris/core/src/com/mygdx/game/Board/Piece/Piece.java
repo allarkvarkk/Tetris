@@ -13,12 +13,11 @@ public class Piece {
     protected int currentRotation;
 
     private ArrayList<Piece> pieces;
-    private ArrayList<Rectangle> pieceShape;
-    public int[][] rotateArrayHopefully;
     protected Color color;
 
+    private ArrayList<Rectangle> pieceShape;
+    private ArrayList<Rectangle> stationary;
     private int amountFallen, newY;
-    private int[][] arr;
 
     protected PieceType pieceType;
     private static final Color[] pieceColors = {
@@ -33,16 +32,13 @@ public class Piece {
 
     public Piece(int[][] shape, int currentRotation) {
         this(shape, currentRotation, PieceType.Z, Color.BLACK);
-        amountFallen = 0;
     }
     public Piece(int[][] shape) {
         this(shape, 0, PieceType.Z, Color.BLACK);
-        amountFallen = 0;
     }
 
     public Piece(Piece piece) {
         this(piece.getCurrentShape(), piece.getCurrentRotation(), piece.getPieceType(), piece.getColor());
-        amountFallen = 0;
     }
 
     public Piece(int[][] shape, int currentRotation, PieceType pieceType, Color color) {
@@ -50,16 +46,11 @@ public class Piece {
         this.currentRotation = currentRotation;
         this.pieceType = pieceType;
         this.color = color;
-
         amountFallen = 0;
     }
 
     public int[][] getCurrentShape() {
         return shape;
-    }
-
-    public void setCurrentShape(int[][] shape){
-        this.shape = shape;
     }
 
     public int getCurrentRotation() {
@@ -75,25 +66,27 @@ public class Piece {
 
     public void move(int deltaX, int deltaY) {
         pieceShape = BoardManager.getBoard().getMovingPiece();
-        rotateArrayHopefully = BoardManager.getBoard().arrRotate();
+        ArrayList<Rectangle> pieceShape = BoardManager.getBoard().getMovingPiece();
         boolean canMoveRight = true, canMoveLeft = true;
         deltaX *= Engine.SPACE_SIZE;
         deltaY *= Engine.SPACE_SIZE;
+        moveToEmptyRows();
         if (!isTouchingBottomBoundary(pieceShape) && (BoardManager.getBoard().getPreviousPieces().isEmpty()
                 || !shouldPieceStop(BoardManager.getBoard().getPreviousPieces(), pieceShape))){
             for (int i = 0; i < pieceShape.size(); i++) {
                 canMoveLeft = canMoveRight = true;
-               if(isCollidingOnLeft(BoardManager.getBoard().getPreviousPieces(), pieceShape)){
-                   canMoveLeft = false;
-                   canMoveRight = true;
-               }
-               if(isCollidingOnRight(BoardManager.getBoard().getPreviousPieces(), pieceShape)){
-                   canMoveLeft = true;
-                   canMoveRight = false;
-               }
+                if(isCollidingOnLeft(BoardManager.getBoard().getPreviousPieces(), pieceShape)){
+                    canMoveLeft = false;
+                    canMoveRight = true;
+                }
+                if(isCollidingOnRight(BoardManager.getBoard().getPreviousPieces(), pieceShape)){
+                    canMoveLeft = true;
+                    canMoveRight = false;
+                }
                 pieceShape.get(i).y += deltaY;
             }
         } else {
+            BoardManager.getBoard().addPreviousColors(BoardManager.getBoard().getCurrentColor());
             BoardManager.getBoard().addPreviousPieces(pieceShape);
             BoardManager.getBoard().createMovementPiece();
         }
@@ -111,9 +104,84 @@ public class Piece {
         }
     }
 
+
+    public boolean isCollidingOnLeft(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
+        for(Rectangle prev : previous){
+            for(Rectangle curr : current) {
+                if(curr.x == prev.x + Engine.SPACE_SIZE && curr.y == prev.y){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isCollidingOnRight(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
+        for(Rectangle prev : previous){
+            for(Rectangle curr : current) {
+                if(curr.x + Engine.SPACE_SIZE == prev.x && curr.y == prev.y){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean shouldPieceStop(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
+        for (Rectangle prev : previous) {
+            for (Rectangle curr : current) {
+                if (curr.y == prev.y + Engine.SPACE_SIZE && curr.x == prev.x) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean touchingBottom(ArrayList<Rectangle> previous, ArrayList<Rectangle> current){
+        for (Rectangle prev : previous) {
+            for (Rectangle curr : current) {
+                if (curr.y == prev.y && curr.x == prev.x) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public int checkSideCollision(ArrayList<Rectangle> previous, ArrayList<Rectangle> current){
+        for (Rectangle prev : previous) {
+            for (Rectangle curr : current) {
+                if(curr.y == prev.y && curr.x + Engine.SPACE_SIZE == prev.x){
+                    return 1;
+                }
+                if(curr.y == prev.y && curr.x == prev.x + Engine.SPACE_SIZE){
+                    return 2;
+                }
+            }
+        }
+        return 0;
+    }
+
+    public void updatePieceShape() {
+        BoardManager.getBoard().getMovingPiece().clear();
+        int currentX = Board.defaultX;
+        int currentY = Board.defaultY;
+
+        for (int i = 0; i < shape.length; i++) {
+            for (int u = 0; u < shape[i].length; u++) {
+                if (shape[i][u] == 1) {
+                    BoardManager.getBoard().getMovingPiece().add(new Rectangle(currentX, currentY, Engine.SPACE_SIZE, Engine.SPACE_SIZE));
+                }
+                currentX += Engine.SPACE_SIZE;
+            }
+            currentY -= Engine.SPACE_SIZE;
+            currentX = Board.defaultX;
+        }
+    }
     public void rotateClockwise() {
         int[][] currentShape = getCurrentShape();
         int[][] newShape = new int[currentShape.length][currentShape[0].length];
+
+        float originalX = getX();
+        float originalY = getY();
 
         for (int i = 0; i < currentShape.length; i++) {
             for (int j = 0; j < currentShape[0].length; j++) {
@@ -122,50 +190,17 @@ public class Piece {
         }
 
         shape = newShape;
+        updatePieceShape();
+        setPosition(originalX, originalY);
     }
-
-    public void rotateArrayClockwise() {
-        int m = rotateArrayHopefully.length; // Number of rows
-        int n = rotateArrayHopefully[0].length; // Number of columns
-
-        // Create a new array to store the rotated elements
-        int[][] rotatedArray = new int[n][m];
-
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                rotatedArray[j][m - 1 - i] = rotateArrayHopefully[i][j];
-            }
-        }
-
-        // Update the original array with the rotated elements
-        rotateArrayHopefully = rotatedArray;
-
-        // Now, you need to update the `pieceShape` with the new rotated positions
-        ArrayList<Rectangle> newArr = new ArrayList<Rectangle>();
-        int currentX = 0, currentY = 0;
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                if (rotateArrayHopefully[i][j] == 1) {
-                    // Calculate the new positions based on the rotated array
-                    newArr.add(new Rectangle(pieceShape.get(j).x + currentX, pieceShape.get(i).y + currentY, pieceShape.get(j).width, pieceShape.get(i).height));
-                }
-                currentY += Engine.SPACE_SIZE;
-            }
-            currentY = 0;
-            currentX += Engine.SPACE_SIZE;
-        }
-
-        // Update the moving piece with the new positions
-        pieceShape = newArr;
-        BoardManager.getBoard().setMovingPiece(pieceShape);
-    }
-
-
 
     public void rotateCounterClockwise() {
-        int[][] originalShape = shape;
+
+        int[][] originalShape = getCurrentShape();
         int[][] newShape = new int[originalShape[0].length][originalShape.length];
+
+        float originalX = getX();
+        float originalY = getY();
 
         for (int i = 0; i < originalShape.length; i++) {
             for (int j = 0; j < originalShape[0].length; j++) {
@@ -174,8 +209,70 @@ public class Piece {
         }
 
         shape = newShape;
+        updatePieceShape();
+        setPosition(originalX, originalY);
     }
 
+    public boolean isRotationValid() {
+        // Make a copy of the piece
+        Piece rotatedPiece = this.copy();
+
+        // Rotate the copy
+        rotatedPiece.rotateClockwise();
+
+        // Get the current positions of the piece shapes
+        ArrayList<Rectangle> previousPieces = BoardManager.getBoard().getPreviousPieces();
+        ArrayList<Rectangle> currentPiece = BoardManager.getBoard().getMovingPiece();
+        // Check if any of the shapes in the rotated piece will intersect with placed pieces
+        for (Rectangle currentShape : currentPiece) {
+            for (Rectangle previousPiece : previousPieces) {
+                if (currentShape.overlaps(previousPiece)) {
+                    return false; // Rotation is not valid
+                }
+            }
+        }
+        return true; // Rotation is valid
+    }
+
+    public float getX() {
+        // Implement this method to get the current X position of the piece
+        // You can calculate this based on the position of the pieceShape
+        // Return the X coordinate of the leftmost piece shape
+        float minX = Float.MAX_VALUE;
+        for (Rectangle rect : BoardManager.getBoard().getMovingPiece()) {
+            if (rect.x < minX) {
+                minX = rect.x;
+            }
+        }
+        return minX;
+    }
+
+    public float getY() {
+        // Implement this method to get the current Y position of the piece
+        // You can calculate this based on the position of the pieceShape
+        // Return the Y coordinate of the lowest piece shape
+        float minY = Float.MAX_VALUE;
+        for (Rectangle rect : BoardManager.getBoard().getMovingPiece()) {
+            if (rect.y < minY) {
+                minY = rect.y;
+            }
+        }
+        return minY;
+    }
+
+    public void setPosition(float x, float y) {
+        // Implement this method to set the position of the piece
+        // Update the positions of all piece shapes based on the new (x, y) coordinates
+        float currentX = getX();
+        float currentY = getY();
+        float deltaX = x - currentX;
+        float deltaY = y - currentY;
+
+        for (Rectangle rect : BoardManager.getBoard().getMovingPiece()) {
+            rect.x += deltaX;
+            rect.y += deltaY;
+        }
+    }
     public void reset() {
         ArrayList<Rectangle> pieceShape = BoardManager.getBoard().getMovingPiece();
 
@@ -242,54 +339,32 @@ public class Piece {
         return lowestYPosition(rect) == BoardManager.getBoard().getBottomOfBoard();
     }
 
-    public boolean shouldPieceStop(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
-        for (Rectangle prev : previous) {
-            for (Rectangle curr : current) {
-                if (curr.y == prev.y + Engine.SPACE_SIZE && curr.x == prev.x) {
-                    return true;
+    public int howManyEmptyBottomRows(){
+        int rows = 0;
+        int tempY = 0;
+        if(!stationary.isEmpty()) {
+            tempY = Integer.MAX_VALUE;
+            for (int i = 0; i < stationary.size(); i++) {
+                if ((int) stationary.get(i).y < tempY) {
+                    tempY = (int) stationary.get(i).y;
                 }
             }
+
+            System.out.println("temp " + tempY);
+            rows = (tempY - BoardManager.getBoard().getBottomOfBoard()) / Engine.SPACE_SIZE;
         }
-        return false;
+        System.out.println("rows left " + rows);
+        return rows;
     }
-
-    public boolean isCollidingOnLeft(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
-      for(Rectangle prev : previous){
-          for(Rectangle curr : current) {
-              if(curr.x == prev.x + Engine.SPACE_SIZE && curr.y == prev.y){
-                  return true;
-              }
-          }
-      }
-      return false;
-    }
-
-    public boolean isCollidingOnRight(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
-        for(Rectangle prev : previous){
-            for(Rectangle curr : current) {
-                if(curr.x + Engine.SPACE_SIZE == prev.x && curr.y == prev.y){
-                    return true;
-                }
+    public void moveToEmptyRows(){
+        stationary = BoardManager.getBoard().getPreviousPieces();
+        int rowsToMove = howManyEmptyBottomRows();
+        if(rowsToMove > 0 && !stationary.isEmpty()) {
+            for (int i = 0; i < stationary.size(); i++) {
+                stationary.get(i).y -= Engine.SPACE_SIZE * rowsToMove;
             }
         }
-        return false;
     }
-
-
-
-
-    public boolean touchingBottom(ArrayList<Rectangle> previous, ArrayList<Rectangle> current){
-        for (Rectangle prev : previous) {
-            for (Rectangle curr : current) {
-                if (curr.y == prev.y && curr.x == prev.x) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
     public int lowestYPosition(ArrayList<Rectangle> rect) {
         int temp = Integer.MAX_VALUE;
         for (Rectangle i : rect) {

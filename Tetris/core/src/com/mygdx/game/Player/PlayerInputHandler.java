@@ -5,13 +5,14 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
 import com.mygdx.game.Board.Board;
+import com.mygdx.game.Board.BoardManager;
 import com.mygdx.game.Board.Piece.*;
 
 public class PlayerInputHandler implements InputProcessor {
     Board board;
     Piece piece;
 
-    private boolean leftPressed = false, rightPressed = false, downPressed = false;
+    private boolean leftPressed = false, rightPressed = false, downPressed = false, upPressed = false;
 
     final private static float MOVE_DELAY = 0.2f;
     private float moveTimer = 0;
@@ -51,8 +52,12 @@ public class PlayerInputHandler implements InputProcessor {
             case Input.Keys.DOWN:
                 downPressed = true; // Set the downPressed flag to true
                 break;
-//            case Input.Keys.UP:
-//                Piece.rotateClockwise();
+            case Input.Keys.UP:
+                upPressed = true;
+                if (PieceManager.getPiece().isRotationValid()) {
+//                  Rotate the piece if it's a valid rotation
+                    PieceManager.getPiece().rotateClockwise();
+                }
 //                rotate (clockwise or counterclockwise)
         }
         return true;
@@ -112,3 +117,4 @@ public class PlayerInputHandler implements InputProcessor {
         return false;
     }
 }
+
