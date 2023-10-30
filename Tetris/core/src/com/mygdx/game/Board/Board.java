@@ -13,6 +13,7 @@ import com.mygdx.game.Board.Piece.PieceType;
 import com.mygdx.game.Engine;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
+import org.w3c.dom.css.Rect;
 
 import java.util.ArrayList;
 
@@ -24,12 +25,15 @@ public class Board implements Screen {
     private Engine tetris;
     private Rectangle[][] grid;
     private PieceCreator pieceCreator;
+    private boolean recreate = false;
 
     private ArrayList<Rectangle> previousPieces;
-//    private Piece piece;
+    private int[][] rotate;
+    //    private Piece piece;
     private Piece piece;
 
     private ArrayList<Rectangle> pieceShape;
+    private ArrayList<Color> colors;
     private boolean isMovingPieceDown = false;
 
     public Board(Engine tetris) {
@@ -38,8 +42,9 @@ public class Board implements Screen {
         pieceCreator = new PieceCreator(tetris, getCenterHorizontally(), getBottomOfBoard());
         createBoard();
         previousPieces = new ArrayList<Rectangle>();
-
+        colors = new ArrayList<Color>(); // Initialize the colors list
     }
+
     public void setCurrentPiece(Piece piece) {
         this.piece = piece;
         pieceShape = pieceCreator.createCurrentPieceShape();
@@ -53,7 +58,7 @@ public class Board implements Screen {
             public void run() {
                 isMovingPieceDown = true;
             }
-        }, .1f, .1f); // Move down every 2 second
+        }, .5f, .5f); // Move down every 2 second
     }
 
     public void addPreviousPieces(ArrayList<Rectangle> completed) {
@@ -65,11 +70,45 @@ public class Board implements Screen {
     }
 
     public void createMovementPiece() {
-        pieceShape.clear();
-        piece = pieceCreator.createRandomPiece();
-        pieceShape = pieceCreator.createCurrentPieceShape();
-        PieceManager.setPiece(piece);
+        if (piece == null || pieceShape.isEmpty()) {
+            piece = pieceCreator.createRandomPiece();
+            pieceShape = pieceCreator.createCurrentPieceShape();
+            rotate = pieceCreator.getShapeNS(piece.getPieceType());
+            PieceManager.setPiece(piece);
+        } else {
+            pieceShape.clear();
+            piece = pieceCreator.createRandomPiece();
+            pieceShape = pieceCreator.createCurrentPieceShape();
+            rotate = pieceCreator.getShapeNS(piece.getPieceType());
+            PieceManager.setPiece(piece);
+        }
+        for (Rectangle rectangle : pieceShape) {
+            colors.add(piece.getColor());
+        }
     }
+
+    public void reCreate() {
+        // Clear the existing rectangles
+        int rowCount = piece.rotateArrayHopefully.length;
+        int colCount = piece.rotateArrayHopefully[0].length;
+
+        int startX = (int)pieceShape.get(0).x;
+        int startY = (int)pieceShape.get(0).y;
+
+        for (int row = 0; row < rowCount; row++) {
+            for (int col = 0; col < colCount; col++) {
+                if (piece.rotateArrayHopefully[row][col] == 1) {
+                    int newX = startX + col * Engine.SPACE_SIZE;
+                    int newY = startY - row * Engine.SPACE_SIZE;
+                    pieceShape.add(new Rectangle(newX, newY, Engine.SPACE_SIZE, Engine.SPACE_SIZE));
+                }
+            }
+        }
+        pieceShape.clear();
+    }
+
+
+
 
     @Override
     public void render(float delta) {
@@ -78,11 +117,17 @@ public class Board implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(Gdx.gl.GL_COLOR_BUFFER_BIT);
 
-        if(piece == null || pieceShape.isEmpty()) {
-            piece = pieceCreator.createRandomPiece();
-            pieceShape = pieceCreator.createCurrentPieceShape();
-            PieceManager.setPiece(piece);
+
+        if (piece == null || pieceShape.isEmpty()) {
+            createMovementPiece();
         }
+//        for(int i = 0; i < rotate.length; i ++){
+//            for(int u= 0; u < rotate[i].length; u ++){
+//                System.out.print(rotate[i][u] + " ");
+//            }
+//            System.out.println();
+//        }
+//        System.out.println("\n\n\n");
 
         tetris.shapeRenderer.setAutoShapeType(true);
         tetris.shapeRenderer.begin(ShapeRenderer.ShapeType.Line); // Use Filled for rendering
@@ -95,27 +140,25 @@ public class Board implements Screen {
             }
         }
         if (isMovingPieceDown) {
-            piece.move(0,-1);
+            piece.move(0, -1);
             isMovingPieceDown = false;
         }
 
-
+        tetris.shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
         tetris.shapeRenderer.setColor(piece.getColor());
         for (Rectangle rectangle : pieceShape) {
             tetris.shapeRenderer.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-            // this is where piece is drawn. Move down here
         }
 
-        for (Rectangle previousPiece : previousPieces) {
-            tetris.shapeRenderer.rect(previousPiece.x, previousPiece.y, previousPiece.width, previousPiece.height);
+        for (int i = 0; i < previousPieces.size(); i++) {
+            tetris.shapeRenderer.setColor(colors.get(i));
+            tetris.shapeRenderer.rect(previousPieces.get(i).x, previousPieces.get(i).y, previousPieces.get(i).width, previousPieces.get(i).height);
         }
+
 
         tetris.shapeRenderer.end();
     }
 
-//    public static int getLowestYPos() {
-//        return lowestYPos;
-//    }
 
     public int getLowestYValue(ArrayList<Rectangle> rect) {
         int temp = Integer.MAX_VALUE;
@@ -169,6 +212,7 @@ public class Board implements Screen {
     private int getCenterVertically() {
         return SCREEN_HEIGHT / 2;
     }
+
     private int getLeftOfBoard() {
         return getCenterHorizontally() - (Engine.BOARD_WIDTH * Engine.SPACE_SIZE) / 2;
     }
@@ -177,7 +221,19 @@ public class Board implements Screen {
         return getCenterVertically() - (Engine.BOARD_HEIGHT * Engine.SPACE_SIZE) / 2;
     } //(screenHeight / 2) - (Engine.BOARD_HEIGHT * ENGINE>SPACE_SIZE) / 2;
 
-    public ArrayList<Rectangle> getMovingPiece(){
+    public ArrayList<Rectangle> getMovingPiece() {
         return pieceShape;
+    }
+
+    public void setMovingPiece(ArrayList<Rectangle> pieceShape){
+        this.pieceShape = pieceShape;
+        reCreate();
+    }
+
+    public int[][] arrRotate(){
+        return rotate;
+    }
+    public void setRotation(int[][] arr){
+        piece.setCurrentShape(arr);
     }
 }

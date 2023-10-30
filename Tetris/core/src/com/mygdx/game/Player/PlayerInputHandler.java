@@ -11,21 +11,45 @@ public class PlayerInputHandler implements InputProcessor {
     Board board;
     Piece piece;
 
+    private boolean leftPressed = false, rightPressed = false, downPressed = false;
+
+    final private static float MOVE_DELAY = 0.2f;
+    private float moveTimer = 0;
+
     public PlayerInputHandler() {
 
+    }
+
+    public void update(float delta) {
+        // Handle continuous key presses with a delay
+        if (leftPressed || rightPressed || downPressed) {
+            moveTimer += delta;
+            if (moveTimer >= MOVE_DELAY) {
+                if (leftPressed) {
+                    PieceManager.getPiece().move(-1,0); // Move left
+                }
+                if (rightPressed) {
+                    PieceManager.getPiece().move(1,0); // Move right
+                }
+                if (downPressed) {
+                    PieceManager.getPiece().move(0,-1); // Move down
+                }
+                moveTimer = 0;
+            }
+        }
     }
 
     @Override
     public boolean keyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.LEFT:
-                PieceManager.getPiece().move(-1, 0); // Move left
+                leftPressed = true; // Set the leftPressed flag to true
                 break;
             case Input.Keys.RIGHT:
-                PieceManager.getPiece().move(1, 0); // Move right
+                rightPressed = true; // Set the rightPressed flag to true
                 break;
             case Input.Keys.DOWN:
-                PieceManager.getPiece().move(0, -1); // Move down
+                downPressed = true; // Set the downPressed flag to true
                 break;
 //            case Input.Keys.UP:
 //                Piece.rotateClockwise();
@@ -36,7 +60,21 @@ public class PlayerInputHandler implements InputProcessor {
 
     @Override
     public boolean keyUp(int keycode) {
-        return false;
+        switch (keycode) {
+            case Input.Keys.LEFT:
+                leftPressed = false; // Set the leftPressed flag to false
+                moveTimer = 0;
+                break;
+            case Input.Keys.RIGHT:
+                rightPressed = false; // Set the rightPressed flag to false
+                moveTimer = 0;
+                break;
+            case Input.Keys.DOWN:
+                downPressed = false; // Set the downPressed flag to false
+                moveTimer = 0;
+                break;
+        }
+        return true;
     }
 
     @Override
@@ -74,4 +112,3 @@ public class PlayerInputHandler implements InputProcessor {
         return false;
     }
 }
-

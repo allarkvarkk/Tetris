@@ -18,6 +18,7 @@ public class Engine extends Game {
 	public ShapeRenderer shapeRenderer;
 	public Board board;
 	//public Piece piece;
+	PlayerInputHandler inputHandler;
 	final public static int BOARD_WIDTH = 10, BOARD_HEIGHT = 20, SPACE_SIZE = 20;
 
 
@@ -27,7 +28,7 @@ public class Engine extends Game {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		PlayerInputHandler inputHandler = new PlayerInputHandler();
+		inputHandler = new PlayerInputHandler();
 		Gdx.input.setInputProcessor(inputHandler);
 		shapeRenderer = new ShapeRenderer();
 		board = new Board(this);
@@ -37,6 +38,8 @@ public class Engine extends Game {
 
 	@Override
 	public void render () {
+		inputHandler.update(.03f);
+
 		super.render();
 	}
 }
