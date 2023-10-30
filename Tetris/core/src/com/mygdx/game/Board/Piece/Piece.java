@@ -108,7 +108,16 @@ public class Piece {
     public boolean isCollidingOnLeft(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
         for(Rectangle prev : previous){
             for(Rectangle curr : current) {
-                if(curr.x == prev.x + Engine.SPACE_SIZE && curr.y == prev.y){
+                if((curr.x == prev.x + Engine.SPACE_SIZE && curr.y == prev.y) || curr.x == BoardManager.getBoard().getLeftOfBoard()){
+                    System.out.println("curr x " + curr.x + " right " + BoardManager.getBoard().getLeftOfBoard());
+                    return true;
+                }
+            }
+        }
+        if(previous.isEmpty()){
+            for(Rectangle curr : current) {
+                if(curr.x == BoardManager.getBoard().getLeftOfBoard()){
+                    System.out.println("curr x " + curr.x + " right " + BoardManager.getBoard().getLeftOfBoard());
                     return true;
                 }
             }
@@ -119,7 +128,16 @@ public class Piece {
     public boolean isCollidingOnRight(ArrayList<Rectangle> previous, ArrayList<Rectangle> current) {
         for(Rectangle prev : previous){
             for(Rectangle curr : current) {
-                if(curr.x + Engine.SPACE_SIZE == prev.x && curr.y == prev.y){
+                if((curr.x + Engine.SPACE_SIZE == prev.x && curr.y == prev.y) || curr.x + Engine.SPACE_SIZE== BoardManager.getBoard().getRightOfBoard()){
+                    System.out.println("curr x " + curr.x + " right " + BoardManager.getBoard().getRightOfBoard());
+                    return true;
+                }
+            }
+        }
+        if(previous.isEmpty()){
+            for(Rectangle curr : current) {
+                if(curr.x + Engine.SPACE_SIZE== BoardManager.getBoard().getRightOfBoard()){
+                    System.out.println("curr x " + curr.x + " right " + BoardManager.getBoard().getRightOfBoard());
                     return true;
                 }
             }
@@ -145,19 +163,6 @@ public class Piece {
             }
         }
         return false;
-    }
-    public int checkSideCollision(ArrayList<Rectangle> previous, ArrayList<Rectangle> current){
-        for (Rectangle prev : previous) {
-            for (Rectangle curr : current) {
-                if(curr.y == prev.y && curr.x + Engine.SPACE_SIZE == prev.x){
-                    return 1;
-                }
-                if(curr.y == prev.y && curr.x == prev.x + Engine.SPACE_SIZE){
-                    return 2;
-                }
-            }
-        }
-        return 0;
     }
 
     public void updatePieceShape() {

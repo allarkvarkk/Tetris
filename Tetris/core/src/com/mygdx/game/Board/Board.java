@@ -246,8 +246,11 @@ public class Board implements Screen {
         return SCREEN_HEIGHT / 2;
     }
 
-    private int getLeftOfBoard() {
+    public int getLeftOfBoard() {
         return getCenterHorizontally() - (Engine.BOARD_WIDTH * Engine.SPACE_SIZE) / 2;
+    }
+    public int getRightOfBoard(){
+        return getCenterHorizontally() + (Engine.BOARD_WIDTH * Engine.SPACE_SIZE) / 2;
     }
 
     public int getBottomOfBoard() {

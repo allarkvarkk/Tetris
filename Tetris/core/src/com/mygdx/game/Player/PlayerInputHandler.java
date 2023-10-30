@@ -22,9 +22,9 @@ public class PlayerInputHandler implements InputProcessor {
     }
 
     public void update(float delta) {
+        moveTimer += delta;
         // Handle continuous key presses with a delay
         if (leftPressed || rightPressed || downPressed) {
-            moveTimer += delta;
             if (moveTimer >= MOVE_DELAY) {
                 if (leftPressed) {
                     PieceManager.getPiece().move(-1,0); // Move left
@@ -39,6 +39,7 @@ public class PlayerInputHandler implements InputProcessor {
             }
         }
     }
+
 
     @Override
     public boolean keyDown(int keycode) {
